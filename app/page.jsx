@@ -61,9 +61,19 @@ const formatRupiah = (number) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number || 0);
 };
 
+const parseSupabaseDate = (isoString) => {
+  if (!isoString) return new Date();
+  let safeString = isoString;
+  // Memaksa Supabase Waktu (UTC) terbaca dengan benar
+  if (!safeString.endsWith('Z') && !safeString.includes('+')) {
+    safeString += 'Z';
+  }
+  return new Date(safeString);
+};
+
 const formatDate = (isoString) => {
   if (!isoString) return '-';
-  const date = new Date(isoString);
+  const date = parseSupabaseDate(isoString);
   return new Intl.DateTimeFormat('id-ID', { 
     day: '2-digit', month: 'short', year: 'numeric', 
     hour: '2-digit', minute: '2-digit',
@@ -206,25 +216,25 @@ const LoginView = ({ onLogin }) => {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 shadow-lg shadow-amber-400/30 mb-4 text-white">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="32"
-          height="32"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M6 3h12l3 5-9 13L3 8l3-5z" />
-          <path d="M3 8h18" />
-          <path d="M10 3l2 5 2-5" />
-        </svg>
-      </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M6 3h12l3 5-9 13L3 8l3-5z" />
+            <path d="M3 8h18" />
+            <path d="M10 3l2 5 2-5" />
+          </svg>
+        </div>
           <h1 className="text-4xl font-serif font-bold text-slate-800 mb-2">88 Gold Jewellery</h1>
           <p className="text-amber-600 text-sm tracking-widest uppercase font-semibold">Selamat Datang</p>
-          </div>
+        </div>
 
         <Card className="p-8 shadow-xl shadow-slate-200/50 border-white">
           <form onSubmit={handleLogin} className="space-y-6">
@@ -317,7 +327,7 @@ const AdminDashboard = ({ db }) => {
 
         <Card className="p-6">
           <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center justify-between">
-            Produk di Database
+            Data Emas
             <Database size={16} className="text-slate-400"/>
           </h3>
           <div className="space-y-4">
@@ -351,6 +361,9 @@ const AdminKeuangan = ({ db, refreshDb, setToast, user }) => {
   const [filterType, setFilterType] = useState('semua');
 
   const now = new Date();
+  const currentWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  const [currYear, currMonth] = currentWIB.split('-');
+
   let displayData = db.keuangan || [];
 
   if (user.role !== 'admin') {
@@ -359,13 +372,21 @@ const AdminKeuangan = ({ db, refreshDb, setToast, user }) => {
 
   if (filterType === 'harian') {
     displayData = displayData.filter(k => {
-      const d = new Date(k.created_at);
-      return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      if (!k.created_at) return false;
+      const kWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(parseSupabaseDate(k.created_at));
+      return kWIB === currentWIB;
     });
   } else if (filterType === 'bulanan') {
     displayData = displayData.filter(k => {
-      const d = new Date(k.created_at);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      if (!k.created_at) return false;
+      const kWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(parseSupabaseDate(k.created_at));
+      return kWIB.startsWith(`${currYear}-${currMonth}`);
+    });
+  } else if (filterType === 'tahunan') {
+    displayData = displayData.filter(k => {
+      if (!k.created_at) return false;
+      const kWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(parseSupabaseDate(k.created_at));
+      return kWIB.startsWith(`${currYear}`);
     });
   }
 
@@ -397,7 +418,8 @@ const AdminKeuangan = ({ db, refreshDb, setToast, user }) => {
           tipe: formData.tipe,
           kategori: formData.kategori,
           nominal: parseFloat(formData.nominal),
-          keterangan: formData.keterangan || '-'
+          keterangan: formData.keterangan || '-',
+          created_at: new Date().toISOString() // INJEKSI WAKTU KLIEN AKTUAL
         })
       });
       
@@ -442,11 +464,11 @@ const AdminKeuangan = ({ db, refreshDb, setToast, user }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="p-5 border-green-200 bg-green-50/30">
-          <p className="text-sm font-semibold text-green-700">Total Pemasukan Manual</p>
+          <p className="text-sm font-semibold text-green-700">Total Pemasukan</p>
           <h3 className="text-2xl font-bold text-green-700 mt-1">{formatRupiah(totalPemasukan)}</h3>
         </Card>
         <Card className="p-5 border-red-200 bg-red-50/30">
-          <p className="text-sm font-semibold text-red-700">Total Pengeluaran Operasional</p>
+          <p className="text-sm font-semibold text-red-700">Total Pengeluaran</p>
           <h3 className="text-2xl font-bold text-red-700 mt-1">{formatRupiah(totalPengeluaran)}</h3>
         </Card>
         <Card className="p-5 border-amber-200 bg-amber-50/30 shadow-md shadow-amber-500/10">
@@ -582,6 +604,7 @@ const AdminUsers = ({ db, refreshDb, setToast }) => {
         setToast({ message: 'Data user berhasil diperbarui!', type: 'success' });
       } else {
         if (!payload.password) throw new Error("Password wajib diisi untuk user baru");
+        payload.created_at = new Date().toISOString();
         await sbFetch('/users', { method: 'POST', body: JSON.stringify(payload) });
         setToast({ message: 'User baru ditambahkan!', type: 'success' });
       }
@@ -712,7 +735,7 @@ const AdminCabang = ({ db, refreshDb, setToast }) => {
       } else {
         await sbFetch('/cabang', {
           method: 'POST',
-          body: JSON.stringify(formData)
+          body: JSON.stringify({ ...formData, created_at: new Date().toISOString() })
         });
         setToast({ message: 'Cabang berhasil ditambahkan!', type: 'success' });
       }
@@ -741,7 +764,6 @@ const AdminCabang = ({ db, refreshDb, setToast }) => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Kelola Cabang</h2>
-          <p className="text-sm text-slate-500">Manajemen data cabang</p>
         </div>
         <Button onClick={openAddModal}><Plus size={16} className="mr-2"/> Tambah Cabang</Button>
       </div>
@@ -798,7 +820,7 @@ const AdminCabang = ({ db, refreshDb, setToast }) => {
 };
 
 // --- ADMIN PRODUCTS VIEW (CRUD LENGKAP) ---
-const AdminProducts = ({ db, refreshDb, setToast }) => {
+const AdminProducts = ({ db, refreshDb, setToast, user }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -824,11 +846,13 @@ const AdminProducts = ({ db, refreshDb, setToast }) => {
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus produk ini secara permanen?')) return;
     try {
+      // Hapus riwayat di inventory terlebih dahulu (menghindari error FK)
+      await sbFetch(`/inventory_emas?produk_id=eq.${id}`, { method: 'DELETE' });
       await sbFetch(`/produk_emas?id=eq.${id}`, { method: 'DELETE' });
       setToast({ message: 'Produk berhasil dihapus!', type: 'success' });
       refreshDb();
     } catch (err) {
-      setToast({ message: err.message, type: 'error' });
+      setToast({ message: `Gagal menghapus produk: ${err.message}. Pastikan produk ini belum ditransaksikan.`, type: 'error' });
     }
   };
 
@@ -851,8 +875,28 @@ const AdminProducts = ({ db, refreshDb, setToast }) => {
         await sbFetch(`/produk_emas?id=eq.${editingId}`, { method: 'PATCH', body: JSON.stringify(payload) });
         setToast({ message: 'Produk berhasil diperbarui!', type: 'success' });
       } else {
-        await sbFetch('/produk_emas', { method: 'POST', body: JSON.stringify(payload) });
+        payload.created_at = new Date().toISOString();
+        const res = await sbFetch('/produk_emas', { method: 'POST', body: JSON.stringify(payload) });
         setToast({ message: 'Produk baru ditambahkan!', type: 'success' });
+        
+        let newProduct = null;
+        if (Array.isArray(res) && res.length > 0) newProduct = res[0];
+        else if (res && res.id) newProduct = res;
+
+        // Otomatis Tambah ke Inventory
+        if (newProduct && newProduct.id && payload.stok > 0) {
+          await sbFetch('/inventory_emas', {
+            method: 'POST',
+            body: JSON.stringify({
+              produk_id: newProduct.id,
+              user_id: user.id,
+              tipe: 'masuk',
+              jumlah: payload.stok,
+              keterangan: 'Stok awal penambahan produk baru',
+              created_at: new Date().toISOString()
+            })
+          });
+        }
       }
       setIsModalOpen(false);
       refreshDb();
@@ -944,7 +988,8 @@ const AdminProducts = ({ db, refreshDb, setToast }) => {
 
                 <div>
                   <label className="text-sm font-semibold text-slate-700 block mb-1">Stok Awal</label>
-                  <Input required type="number" value={formData.stok} onChange={e => setFormData({...formData, stok: e.target.value})} placeholder="Cth: 10" />
+                  <Input required type="number" value={formData.stok} onChange={e => setFormData({...formData, stok: e.target.value})} placeholder="Cth: 10" disabled={editingId !== null} />
+                  {editingId && <p className="text-[10px] text-amber-600 mt-1">Stok hanya bisa diubah melalui menu Inventory.</p>}
                 </div>
 
                 <div>
@@ -1000,7 +1045,8 @@ const AdminInventory = ({ db, refreshDb, setToast, user }) => {
       }
 
       await sbFetch('/inventory_emas', { method: 'POST', body: JSON.stringify({
-        produk_id: formData.produk_id, user_id: user.id, tipe: formData.tipe, jumlah: qty, keterangan: formData.keterangan || `Penyesuaian manual oleh ${user.nama}`
+        produk_id: formData.produk_id, user_id: user.id, tipe: formData.tipe, jumlah: qty, keterangan: formData.keterangan || `Penyesuaian manual oleh ${user.nama}`,
+        created_at: new Date().toISOString()
       })});
 
       await sbFetch(`/produk_emas?id=eq.${product.id}`, { method: 'PATCH', body: JSON.stringify({ stok: newStok }) });
@@ -1038,10 +1084,10 @@ const AdminInventory = ({ db, refreshDb, setToast, user }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Inventory Emas</h2>
+          <h2 className="text-2xl font-bold text-slate-800">Inventory Emas (Mutasi)</h2>
           <p className="text-sm text-slate-500">Kelola dan pantau barang masuk / keluar.</p>
         </div>
-        <Button onClick={openAddModal}><Plus size={16} className="mr-2"/> Tambah Stok</Button>
+        <Button onClick={openAddModal}><Plus size={16} className="mr-2"/> Tambah Mutasi Stok</Button>
       </div>
       
       <Card className="overflow-hidden">
@@ -1133,19 +1179,19 @@ const TransaksiHistory = ({ db, refreshDb, setToast, user }) => {
   if (filterType === 'harian') {
     displayTx = displayTx.filter(tx => {
       if (!tx.created_at) return false;
-      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(tx.created_at));
+      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(parseSupabaseDate(tx.created_at));
       return txWIB === currentWIB;
     });
   } else if (filterType === 'bulanan') {
     displayTx = displayTx.filter(tx => {
       if (!tx.created_at) return false;
-      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(tx.created_at));
+      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(parseSupabaseDate(tx.created_at));
       return txWIB.startsWith(`${currYear}-${currMonth}`);
     });
   } else if (filterType === 'tahunan') {
     displayTx = displayTx.filter(tx => {
       if (!tx.created_at) return false;
-      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(tx.created_at));
+      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(parseSupabaseDate(tx.created_at));
       return txWIB.startsWith(`${currYear}`);
     });
   }
@@ -1199,7 +1245,7 @@ const TransaksiHistory = ({ db, refreshDb, setToast, user }) => {
           await sbFetch('/inventory_emas', {
             method: 'POST',
             body: JSON.stringify({
-              produk_id: product.id, user_id: user.id, tipe: 'masuk', jumlah: item.qty, keterangan: `Pembatalan Transaksi ${tx.kode_transaksi}`
+              produk_id: product.id, user_id: user.id, tipe: 'masuk', jumlah: item.qty, keterangan: `Pembatalan Transaksi ${tx.kode_transaksi}`, created_at: new Date().toISOString()
             })
           });
         }
@@ -1367,7 +1413,7 @@ const TransaksiHistory = ({ db, refreshDb, setToast, user }) => {
           <Card className="w-full max-w-md p-6 shadow-2xl">
             <div className="flex justify-between items-start mb-6 border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-xl font-bold text-slate-800">Detail Transaksi</h3>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">Detail Transaksi</h3>
                 <p className="text-sm font-semibold text-amber-600">{selectedTx.kode_transaksi}</p>
               </div>
               <div className="text-right text-sm">
@@ -1460,7 +1506,8 @@ const KasirBuyback = ({ db, refreshDb, setToast, user }) => {
           kode_buyback: kodeBb, user_id: user.id, cabang_id: user.cabang_id,
           nama_customer: checkoutData.customerName, no_hp: checkoutData.customerPhone,
           total_berat: totalBerat, total_bayar: totalBayar,
-          metode_pembayaran: checkoutData.paymentMethod, catatan: checkoutData.catatan, status: 'selesai'
+          metode_pembayaran: checkoutData.paymentMethod, catatan: checkoutData.catatan, status: 'selesai',
+          created_at: new Date().toISOString()
         })
       });
       
@@ -1483,7 +1530,8 @@ const KasirBuyback = ({ db, refreshDb, setToast, user }) => {
           tipe: 'pengeluaran',
           kategori: 'Buyback Perhiasan',
           nominal: totalBayar,
-          keterangan: `Pengeluaran otomatis untuk Buyback Pelanggan (${kodeBb})`
+          keterangan: `Pengeluaran otomatis untuk Buyback Pelanggan (${kodeBb})`,
+          created_at: new Date().toISOString()
         })
       });
 
@@ -1736,26 +1784,26 @@ const BuybackHistory = ({ db, refreshDb, setToast, user }) => {
 
   const now = new Date();
   const currentWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
-  const [currYear, currMonth, currDay] = currentWIB.split('-');
+  const [currYear, currMonth] = currentWIB.split('-');
 
   let displayBb = user.role === 'admin' ? db.buyback : db.buyback.filter(bb => bb.user_id === user.id);
 
   if (filterType === 'harian') {
     displayBb = displayBb.filter(bb => {
       if (!bb.created_at) return false;
-      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(bb.created_at));
+      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(parseSupabaseDate(bb.created_at));
       return txWIB === currentWIB;
     });
   } else if (filterType === 'bulanan') {
     displayBb = displayBb.filter(bb => {
       if (!bb.created_at) return false;
-      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(bb.created_at));
+      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(parseSupabaseDate(bb.created_at));
       return txWIB.startsWith(`${currYear}-${currMonth}`);
     });
   } else if (filterType === 'tahunan') {
     displayBb = displayBb.filter(bb => {
       if (!bb.created_at) return false;
-      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(bb.created_at));
+      const txWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(parseSupabaseDate(bb.created_at));
       return txWIB.startsWith(`${currYear}`);
     });
   }
@@ -2097,7 +2145,8 @@ const KasirPOS = ({ db, refreshDb, setToast, user }) => {
         body: JSON.stringify({
           kode_transaksi: kodeTx, user_id: user.id, cabang_id: user.cabang_id,
           total_item: totalItem, total_bayar: totalBayar,
-          metode_pembayaran: paymentMethod, uang_dibayar: uangDibayar, kembalian: paymentMethod === 'tunai' ? kembalian : 0, status: 'selesai', catatan: catatanPelanggan
+          metode_pembayaran: paymentMethod, uang_dibayar: uangDibayar, kembalian: paymentMethod === 'tunai' ? kembalian : 0, status: 'selesai', catatan: catatanPelanggan,
+          created_at: new Date().toISOString()
         })
       });
       const txData = txDataArr[0];
@@ -2117,7 +2166,7 @@ const KasirPOS = ({ db, refreshDb, setToast, user }) => {
       for (const item of cart) {
         const newStok = item.stok - item.qty;
         await sbFetch(`/produk_emas?id=eq.${item.id}`, { method: 'PATCH', body: JSON.stringify({ stok: newStok }) });
-        await sbFetch('/inventory_emas', { method: 'POST', body: JSON.stringify({ produk_id: item.id, user_id: user.id, tipe: 'keluar', jumlah: item.qty, keterangan: `Penjualan ${kodeTx}` })});
+        await sbFetch('/inventory_emas', { method: 'POST', body: JSON.stringify({ produk_id: item.id, user_id: user.id, tipe: 'keluar', jumlah: item.qty, keterangan: `Penjualan ${kodeTx}`, created_at: new Date().toISOString() })});
       }
 
       await sbFetch('/keuangan', {
@@ -2128,7 +2177,8 @@ const KasirPOS = ({ db, refreshDb, setToast, user }) => {
           tipe: 'pemasukan',
           kategori: 'Penjualan Emas',
           nominal: totalBayar,
-          keterangan: `Pemasukan otomatis dari Penjualan POS (${kodeTx})`
+          keterangan: `Pemasukan otomatis dari Penjualan POS (${kodeTx})`,
+          created_at: new Date().toISOString()
         })
       });
 
@@ -2469,7 +2519,7 @@ export default function App() {
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/admin/produk', icon: Package, label: 'Data Emas' },
     { path: '/admin/inventory', icon: Box, label: 'Inventory Masuk/Keluar' },
-    { path: '/admin/keuangan', icon: Landmark, label: 'Buku Kas / Keuangan' },
+    { path: '/admin/keuangan', icon: Landmark, label: 'Keuangan' },
     { path: '/admin/transaksi', icon: FileText, label: 'Riwayat Transaksi' },
     { path: '/admin/buyback', icon: RefreshCcw, label: 'Riwayat Buyback' },
     { path: '/admin/cabang', icon: Store, label: 'Kelola Cabang' },
@@ -2554,7 +2604,7 @@ export default function App() {
         <div className="p-4 md:p-8 flex-1 overflow-y-auto relative">
           {/* Router Outlet */}
           {route === '/admin/dashboard' && <AdminDashboard db={db} />}
-          {route === '/admin/produk' && <AdminProducts db={db} refreshDb={fetchDatabase} setToast={setToast} />}
+          {route === '/admin/produk' && <AdminProducts db={db} refreshDb={fetchDatabase} setToast={setToast} user={user} />}
           {route === '/admin/cabang' && <AdminCabang db={db} refreshDb={fetchDatabase} setToast={setToast} />}
           {route === '/admin/inventory' && <AdminInventory db={db} refreshDb={fetchDatabase} setToast={setToast} user={user} />}
           {route === '/admin/keuangan' && <AdminKeuangan db={db} refreshDb={fetchDatabase} setToast={setToast} user={user} />}
