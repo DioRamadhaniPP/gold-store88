@@ -227,10 +227,24 @@ const LoginView = ({ onLogin }) => {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 shadow-lg shadow-amber-400/30 mb-4 text-white">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-          </div>
-          <h1 className="text-4xl font-serif font-bold text-slate-800 mb-2">88 GoldJewellery</h1>
-          <p className="text-amber-600 text-sm tracking-widest uppercase font-semibold">Live System</p>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M6 3h12l3 5-9 13L3 8l3-5z" />
+            <path d="M3 8h18" />
+            <path d="M10 3l2 5 2-5" />
+          </svg>
+        </div>
+          <h1 className="text-4xl font-serif font-bold text-slate-800 mb-2">88 Gold Jewellery</h1>
+          <p className="text-amber-600 text-sm tracking-widest uppercase font-semibold">SELAMAT DATANG</p>
         </div>
 
         <Card className="p-8 shadow-xl shadow-slate-200/50 border-white">
@@ -244,14 +258,14 @@ const LoginView = ({ onLogin }) => {
             
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Username</label>
-              <Input type="text" placeholder="Masukkan username Supabase" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="off" disabled={isLoading}/>
+              <Input type="text" placeholder="Masukkan username" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="off" disabled={isLoading}/>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Password</label>
               <Input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading}/>
             </div>
             <Button type="submit" className="w-full h-11 text-base mt-4 font-bold" isLoading={isLoading}>
-              Masuk Sistem
+              Masuk
             </Button>
           </form>
         </Card>
@@ -279,7 +293,6 @@ const AdminDashboard = ({ db }) => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Dashboard Admin</h2>
-          <p className="text-sm text-slate-500">Ringkasan performa 88 GoldJewellery (Realtime Database).</p>
         </div>
       </div>
 
@@ -447,8 +460,7 @@ const AdminKeuangan = ({ db, refreshDb, setToast, user }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Buku Kas (Arus Keuangan)</h2>
-          <p className="text-sm text-slate-500">Pencatatan manual untuk pemasukan atau pengeluaran operasional.</p>
+          <h2 className="text-2xl font-bold text-slate-800">Laporan Keuangan</h2>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <div className="flex gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 w-full sm:w-auto overflow-x-auto">
@@ -769,7 +781,6 @@ const AdminCabang = ({ db, refreshDb, setToast }) => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Kelola Cabang</h2>
-          <p className="text-sm text-slate-500">Manajemen data cabang (CRUD Terhubung Database).</p>
         </div>
         <Button onClick={openAddModal}><Plus size={16} className="mr-2"/> Tambah Cabang</Button>
       </div>
@@ -920,7 +931,6 @@ const AdminProducts = ({ db, refreshDb, setToast, user }) => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Katalog Emas</h2>
-          <p className="text-sm text-slate-500">Manajemen harga harian dan informasi produk (CRUD Aktif).</p>
         </div>
         <Button onClick={openAddModal}><Plus size={16} className="mr-2"/> Tambah Produk</Button>
       </div>
@@ -1365,8 +1375,7 @@ const TransaksiHistory = ({ db, refreshDb, setToast, user }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">{user.role === 'admin' ? 'Semua Riwayat Transaksi' : 'Riwayat Transaksi Anda'}</h2>
-          <p className="text-sm text-slate-500">Daftar riwayat penjualan. Anda dapat melihat detail atau membatalkan (hapus) transaksi yang salah.</p>
+          <h2 className="text-2xl font-bold text-slate-800">{user.role === 'admin' ? 'Riwayat Transaksi' : 'Riwayat Transaksi '}</h2>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <div className="flex gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 w-full sm:w-auto overflow-x-auto">
@@ -1952,8 +1961,7 @@ const BuybackHistory = ({ db, refreshDb, setToast, user }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">{user.role === 'admin' ? 'Semua Riwayat Buyback' : 'Riwayat Buyback Anda'}</h2>
-          <p className="text-sm text-slate-500">Daftar transaksi pembelian emas dari pelanggan (Trade-in / Jual).</p>
+          <h2 className="text-2xl font-bold text-slate-800">{user.role === 'admin' ? 'Riwayat Buyback' : 'Riwayat Buyback '}</h2>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <div className="flex gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 w-full sm:w-auto overflow-x-auto">
@@ -2569,7 +2577,7 @@ export default function App() {
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/admin/produk', icon: Package, label: 'Data Emas' },
     { path: '/admin/inventory', icon: Box, label: 'Inventory Masuk/Keluar' },
-    { path: '/admin/keuangan', icon: Landmark, label: 'Buku Kas / Keuangan' },
+    { path: '/admin/keuangan', icon: Landmark, label: 'Keuangan' },
     { path: '/admin/transaksi', icon: FileText, label: 'Riwayat Transaksi' },
     { path: '/admin/buyback', icon: RefreshCcw, label: 'Riwayat Buyback' },
     { path: '/admin/cabang', icon: Store, label: 'Kelola Cabang' },
@@ -2578,7 +2586,7 @@ export default function App() {
 
   const kasirMenu = [
     { path: '/kasir/dashboard', icon: LayoutDashboard, label: 'Dashboard Kasir' },
-    { path: '/kasir/pos', icon: ShoppingCart, label: 'Penjualan (POS)' },
+    { path: '/kasir/pos', icon: ShoppingCart, label: 'Penjualan' },
     { path: '/kasir/buyback', icon: Scale, label: 'Terima Buyback' },
     { path: '/kasir/transaksi', icon: FileText, label: 'Riwayat Penjualan' },
     { path: '/kasir/riwayat-buyback', icon: RefreshCcw, label: 'Riwayat Buyback' },
