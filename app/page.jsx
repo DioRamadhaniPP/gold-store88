@@ -4,10 +4,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   LayoutDashboard, ShoppingCart, Package, Users, Settings, 
   LogOut, Plus, Search, Trash2, CreditCard, Banknote, 
-  Wallet, TrendingUp, DollarSign, Box, Activity, ChevronRight, 
+  Wallet, TrendingUp, TrendingDown, DollarSign, Box, Activity, ChevronRight, 
   CheckCircle2, AlertCircle, Store, FileText, ArrowUpRight, 
-  ArrowDownRight, Calendar, Loader2, Database, Edit, Printer,
-  RefreshCcw, Scale, MapPin, Landmark, ArrowUpCircle, ArrowDownCircle, Download
+  ArrowDownRight, Calendar, Loader2, Database, Edit, Edit2, Printer,
+  RefreshCcw, Scale, MapPin, Landmark, ArrowUpCircle, ArrowDownCircle, Download,
+  Menu, X, ArrowRightLeft, History
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -64,7 +65,6 @@ const formatRupiah = (number) => {
 const parseSupabaseDate = (isoString) => {
   if (!isoString) return new Date();
   let safeString = isoString;
-  // Memaksa Supabase Waktu (UTC) terbaca dengan benar
   if (!safeString.endsWith('Z') && !safeString.includes('+')) {
     safeString += 'Z';
   }
@@ -153,6 +153,17 @@ const Toast = ({ message, type = 'success' }) => {
   );
 };
 
+const Badge = ({ children, color = "blue" }) => {
+  const colors = {
+    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    green: "bg-green-50 text-green-600 border-green-100",
+    red: "bg-red-50 text-red-600 border-red-100",
+    amber: "bg-amber-50 text-amber-600 border-amber-100",
+    slate: "bg-slate-50 text-slate-600 border-slate-100",
+  };
+  return <span className={`px-2 py-0.5 rounded text-xs font-bold border ${colors[color]}`}>{children}</span>;
+};
+
 // ============================================================================
 // 4. VIEWS
 // ============================================================================
@@ -216,24 +227,10 @@ const LoginView = ({ onLogin }) => {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 shadow-lg shadow-amber-400/30 mb-4 text-white">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M6 3h12l3 5-9 13L3 8l3-5z" />
-            <path d="M3 8h18" />
-            <path d="M10 3l2 5 2-5" />
-          </svg>
-        </div>
-          <h1 className="text-4xl font-serif font-bold text-slate-800 mb-2">88 Gold Jewellery</h1>
-          <p className="text-amber-600 text-sm tracking-widest uppercase font-semibold">Selamat Datang</p>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+          </div>
+          <h1 className="text-4xl font-serif font-bold text-slate-800 mb-2">88 GoldJewellery</h1>
+          <p className="text-amber-600 text-sm tracking-widest uppercase font-semibold">Live System</p>
         </div>
 
         <Card className="p-8 shadow-xl shadow-slate-200/50 border-white">
@@ -247,14 +244,14 @@ const LoginView = ({ onLogin }) => {
             
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Username</label>
-              <Input type="text" placeholder="Masukkan username " value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="off" disabled={isLoading}/>
+              <Input type="text" placeholder="Masukkan username Supabase" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="off" disabled={isLoading}/>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Password</label>
               <Input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading}/>
             </div>
             <Button type="submit" className="w-full h-11 text-base mt-4 font-bold" isLoading={isLoading}>
-              MASUK
+              Masuk Sistem
             </Button>
           </form>
         </Card>
@@ -282,6 +279,7 @@ const AdminDashboard = ({ db }) => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Dashboard Admin</h2>
+          <p className="text-sm text-slate-500">Ringkasan performa 88 GoldJewellery (Realtime Database).</p>
         </div>
       </div>
 
@@ -292,11 +290,11 @@ const AdminDashboard = ({ db }) => {
           { title: 'Transaksi Berhasil', value: db.transaksi.length.toString(), icon: Activity, color: 'text-blue-600', bg: 'bg-blue-100' },
           { title: 'Total Produk (Stok)', value: `${totalStok} pcs`, icon: Box, color: 'text-purple-600', bg: 'bg-purple-100' },
         ].map((stat, i) => (
-          <Card key={i} className="p-6 hover:shadow-md transition-shadow">
+          <Card key={i} className="p-4 sm:p-6 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-semibold text-slate-500">{stat.title}</p>
-                <h3 className="text-2xl font-bold text-slate-800 mt-2">{stat.value}</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mt-2">{stat.value}</h3>
               </div>
               <div className={`p-3 rounded-lg ${stat.bg} ${stat.color}`}>
                 <stat.icon size={24} />
@@ -307,11 +305,11 @@ const AdminDashboard = ({ db }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="p-6 lg:col-span-2">
+        <Card className="p-4 sm:p-6 lg:col-span-2">
           <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
             <Calendar size={18} className="text-amber-500"/> Grafik Penjualan (Juta Rupiah)
           </h3>
-          <div className="h-[300px] w-full">
+          <div className="h-[250px] sm:h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
@@ -325,22 +323,22 @@ const AdminDashboard = ({ db }) => {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6">
           <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center justify-between">
-            Data Emas
+            Produk di Database
             <Database size={16} className="text-slate-400"/>
           </h3>
           <div className="space-y-4">
             {db.produk_emas.slice(0, 5).map((p, i) => (
               <div key={i} className="flex items-center gap-4 p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold border border-amber-200">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold border border-amber-200 shrink-0">
                   {i + 1}
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-800 truncate w-[150px]">{p.nama_produk}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 truncate">{p.nama_produk}</p>
                   <p className="text-xs text-slate-500">{p.kadar || '-'} • {p.berat}g</p>
                 </div>
-                <div className={`text-sm font-bold ${p.stok > 0 ? 'text-green-600' : 'text-red-500'} bg-slate-50 px-2 py-1 rounded`}>
+                <div className={`text-sm font-bold ${p.stok > 0 ? 'text-green-600' : 'text-red-500'} bg-slate-50 px-2 py-1 rounded shrink-0`}>
                   {p.stok} stok
                 </div>
               </div>
@@ -419,7 +417,7 @@ const AdminKeuangan = ({ db, refreshDb, setToast, user }) => {
           kategori: formData.kategori,
           nominal: parseFloat(formData.nominal),
           keterangan: formData.keterangan || '-',
-          created_at: new Date().toISOString() // INJEKSI WAKTU KLIEN AKTUAL
+          created_at: new Date().toISOString()
         })
       });
       
@@ -449,16 +447,19 @@ const AdminKeuangan = ({ db, refreshDb, setToast, user }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Keuangan</h2>
+          <h2 className="text-2xl font-bold text-slate-800">Buku Kas (Arus Keuangan)</h2>
+          <p className="text-sm text-slate-500">Pencatatan manual untuk pemasukan atau pengeluaran operasional.</p>
         </div>
-        <div className="flex gap-2">
-          <div className="flex gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200">
-            <button onClick={() => setFilterType('harian')} className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'harian' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Harian</button>
-            <button onClick={() => setFilterType('bulanan')} className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'bulanan' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Bulanan</button>
-            <button onClick={() => setFilterType('semua')} className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'semua' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Semua</button>
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          <div className="flex gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 w-full sm:w-auto overflow-x-auto">
+            <button onClick={() => setFilterType('harian')} className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'harian' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Harian</button>
+            <button onClick={() => setFilterType('bulanan')} className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'bulanan' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Bulanan</button>
+            <button onClick={() => setFilterType('semua')} className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'semua' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Semua</button>
           </div>
-          <Button variant="outline" onClick={handleExport}><Download size={16} className="mr-2"/> Export Excel</Button>
-          <Button onClick={() => setIsModalOpen(true)}><Plus size={16} className="mr-2"/> Tambah Kas</Button>
+          <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+            <Button variant="outline" onClick={handleExport} className="flex-1 sm:flex-none"><Download size={16} className="mr-2"/> Export</Button>
+            <Button onClick={() => setIsModalOpen(true)} className="flex-1 sm:flex-none"><Plus size={16} className="mr-2"/> Tambah</Button>
+          </div>
         </div>
       </div>
 
@@ -478,43 +479,45 @@ const AdminKeuangan = ({ db, refreshDb, setToast, user }) => {
       </div>
 
       <Card className="overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-4 font-bold">Waktu</th>
-              <th className="px-6 py-4 font-bold">Tipe & Kategori</th>
-              <th className="px-6 py-4 font-bold">Keterangan</th>
-              <th className="px-6 py-4 font-bold">Pemasukan</th>
-              <th className="px-6 py-4 font-bold">Pengeluaran</th>
-              {user.role === 'admin' && <th className="px-6 py-4 font-bold text-right">Aksi</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {displayData.length === 0 && <tr><td colSpan="6" className="text-center py-6 text-slate-500">Tidak ada catatan kas.</td></tr>}
-            {displayData.map((k) => (
-              <tr key={k.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-6 py-4 text-slate-500">{formatDate(k.created_at)}</td>
-                <td className="px-6 py-4">
-                  <div className={`flex items-center gap-1 font-bold ${k.tipe === 'pemasukan' ? 'text-green-600' : 'text-red-600'}`}>
-                    {k.tipe === 'pemasukan' ? <ArrowDownCircle size={14}/> : <ArrowUpCircle size={14}/>}
-                    {k.tipe.toUpperCase()}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-1 uppercase">{k.kategori}</div>
-                </td>
-                <td className="px-6 py-4 text-slate-700">{k.keterangan}</td>
-                <td className="px-6 py-4 font-bold text-green-600">{k.tipe === 'pemasukan' ? formatRupiah(k.nominal) : '-'}</td>
-                <td className="px-6 py-4 font-bold text-red-600">{k.tipe === 'pengeluaran' ? formatRupiah(k.nominal) : '-'}</td>
-                {user.role === 'admin' && (
-                  <td className="px-6 py-4 text-right">
-                    <Button variant="danger" className="px-2 py-1 h-auto text-xs" onClick={() => handleDelete(k.id)}>
-                      <Trash2 size={14} />
-                    </Button>
-                  </td>
-                )}
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm text-left min-w-[600px]">
+            <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-6 py-4 font-bold">Waktu</th>
+                <th className="px-6 py-4 font-bold">Tipe & Kategori</th>
+                <th className="px-6 py-4 font-bold">Keterangan</th>
+                <th className="px-6 py-4 font-bold">Pemasukan</th>
+                <th className="px-6 py-4 font-bold">Pengeluaran</th>
+                {user.role === 'admin' && <th className="px-6 py-4 font-bold text-right">Aksi</th>}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {displayData.length === 0 && <tr><td colSpan="6" className="text-center py-6 text-slate-500">Tidak ada catatan kas.</td></tr>}
+              {displayData.map((k) => (
+                <tr key={k.id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <td className="px-6 py-4 text-slate-500 whitespace-nowrap">{formatDate(k.created_at)}</td>
+                  <td className="px-6 py-4">
+                    <div className={`flex items-center gap-1 font-bold ${k.tipe === 'pemasukan' ? 'text-green-600' : 'text-red-600'}`}>
+                      {k.tipe === 'pemasukan' ? <ArrowDownCircle size={14}/> : <ArrowUpCircle size={14}/>}
+                      {k.tipe.toUpperCase()}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1 uppercase">{k.kategori}</div>
+                  </td>
+                  <td className="px-6 py-4 text-slate-700 max-w-[200px] truncate" title={k.keterangan}>{k.keterangan}</td>
+                  <td className="px-6 py-4 font-bold text-green-600 whitespace-nowrap">{k.tipe === 'pemasukan' ? formatRupiah(k.nominal) : '-'}</td>
+                  <td className="px-6 py-4 font-bold text-red-600 whitespace-nowrap">{k.tipe === 'pengeluaran' ? formatRupiah(k.nominal) : '-'}</td>
+                  {user.role === 'admin' && (
+                    <td className="px-6 py-4 text-right">
+                      <Button variant="danger" className="px-2 py-1 h-auto text-xs" onClick={() => handleDelete(k.id)}>
+                        <Trash2 size={14} />
+                      </Button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {/* Modal Tambah Kas */}
@@ -628,33 +631,35 @@ const AdminUsers = ({ db, refreshDb, setToast }) => {
       </div>
 
       <Card className="overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-            <tr><th className="px-6 py-4 font-bold">Nama Lengkap</th><th className="px-6 py-4 font-bold">Username</th><th className="px-6 py-4 font-bold">Role / Cabang</th><th className="px-6 py-4 font-bold text-right">Aksi</th></tr>
-          </thead>
-          <tbody>
-            {db.users.length === 0 && <tr><td colSpan="4" className="text-center py-4 text-slate-500">Tidak ada data.</td></tr>}
-            {db.users.map((u) => {
-              const cabang = db.cabang.find(c => c.id === u.cabang_id);
-              return (
-                <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="px-6 py-4 font-semibold text-slate-800">{u.nama}</td>
-                  <td className="px-6 py-4 text-slate-600">{u.username}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold capitalize ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                      {u.role}
-                    </span>
-                    <div className="text-xs text-slate-500 mt-1">{cabang ? cabang.nama_cabang : 'Pusat / Semua'}</div>
-                  </td>
-                  <td className="px-6 py-4 text-right flex justify-end gap-2">
-                    <Button variant="secondary" className="px-2 py-1 h-auto" onClick={() => openEditModal(u)}><Edit size={14} /></Button>
-                    <Button variant="danger" className="px-2 py-1 h-auto" onClick={() => handleDelete(u.id)}><Trash2 size={14} /></Button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm text-left min-w-[500px]">
+            <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+              <tr><th className="px-6 py-4 font-bold">Nama Lengkap</th><th className="px-6 py-4 font-bold">Username</th><th className="px-6 py-4 font-bold">Role / Cabang</th><th className="px-6 py-4 font-bold text-right">Aksi</th></tr>
+            </thead>
+            <tbody>
+              {db.users.length === 0 && <tr><td colSpan="4" className="text-center py-4 text-slate-500">Tidak ada data.</td></tr>}
+              {db.users.map((u) => {
+                const cabang = db.cabang.find(c => c.id === u.cabang_id);
+                return (
+                  <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="px-6 py-4 font-semibold text-slate-800 whitespace-nowrap">{u.nama}</td>
+                    <td className="px-6 py-4 text-slate-600">{u.username}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-bold capitalize ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                        {u.role}
+                      </span>
+                      <div className="text-xs text-slate-500 mt-1 whitespace-nowrap">{cabang ? cabang.nama_cabang : 'Pusat / Semua'}</div>
+                    </td>
+                    <td className="px-6 py-4 text-right flex justify-end gap-2">
+                      <Button variant="secondary" className="px-2 py-1 h-auto" onClick={() => openEditModal(u)}><Edit size={14} /></Button>
+                      <Button variant="danger" className="px-2 py-1 h-auto" onClick={() => handleDelete(u.id)}><Trash2 size={14} /></Button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {/* Modal CRUD User */}
@@ -764,33 +769,36 @@ const AdminCabang = ({ db, refreshDb, setToast }) => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Kelola Cabang</h2>
+          <p className="text-sm text-slate-500">Manajemen data cabang (CRUD Terhubung Database).</p>
         </div>
         <Button onClick={openAddModal}><Plus size={16} className="mr-2"/> Tambah Cabang</Button>
       </div>
 
       <Card className="overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-            <tr><th className="px-6 py-4 font-bold">Nama Cabang</th><th className="px-6 py-4 font-bold">Alamat Lengkap</th><th className="px-6 py-4 font-bold text-right">Aksi</th></tr>
-          </thead>
-          <tbody>
-            {db.cabang.length === 0 && <tr><td colSpan="3" className="text-center py-4 text-slate-500">Tidak ada cabang.</td></tr>}
-            {db.cabang.map((c) => (
-              <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-6 py-4 font-semibold text-slate-800">{c.nama_cabang}</td>
-                <td className="px-6 py-4 text-slate-600">{c.alamat}</td>
-                <td className="px-6 py-4 text-right flex justify-end gap-2">
-                  <Button variant="secondary" className="px-3 py-1.5 h-auto text-xs" onClick={() => openEditModal(c)}>
-                    <Edit size={14} className="mr-1" /> Edit
-                  </Button>
-                  <Button variant="danger" className="px-3 py-1.5 h-auto text-xs" onClick={() => handleDelete(c.id)}>
-                    <Trash2 size={14} className="mr-1" /> Hapus
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm text-left min-w-[500px]">
+            <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+              <tr><th className="px-6 py-4 font-bold">Nama Cabang</th><th className="px-6 py-4 font-bold">Alamat Lengkap</th><th className="px-6 py-4 font-bold text-right">Aksi</th></tr>
+            </thead>
+            <tbody>
+              {db.cabang.length === 0 && <tr><td colSpan="3" className="text-center py-4 text-slate-500">Tidak ada cabang.</td></tr>}
+              {db.cabang.map((c) => (
+                <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <td className="px-6 py-4 font-semibold text-slate-800 whitespace-nowrap">{c.nama_cabang}</td>
+                  <td className="px-6 py-4 text-slate-600">{c.alamat}</td>
+                  <td className="px-6 py-4 text-right flex justify-end gap-2">
+                    <Button variant="secondary" className="px-3 py-1.5 h-auto text-xs" onClick={() => openEditModal(c)}>
+                      <Edit size={14} className="mr-1" /> Edit
+                    </Button>
+                    <Button variant="danger" className="px-3 py-1.5 h-auto text-xs" onClick={() => handleDelete(c.id)}>
+                      <Trash2 size={14} className="mr-1" /> Hapus
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {/* Modal Tambah/Edit Cabang */}
@@ -912,7 +920,7 @@ const AdminProducts = ({ db, refreshDb, setToast, user }) => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Katalog Emas</h2>
-          <p className="text-sm text-slate-500">Manajemen harga harian dan informasi produk</p>
+          <p className="text-sm text-slate-500">Manajemen harga harian dan informasi produk (CRUD Aktif).</p>
         </div>
         <Button onClick={openAddModal}><Plus size={16} className="mr-2"/> Tambah Produk</Button>
       </div>
@@ -924,8 +932,8 @@ const AdminProducts = ({ db, refreshDb, setToast, user }) => {
             <Input placeholder="Cari produk..." className="pl-10 bg-white" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left bg-white">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm text-left bg-white min-w-[700px]">
             <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
               <tr><th className="px-6 py-4">Nama Produk</th><th className="px-6 py-4">Kadar</th><th className="px-6 py-4">Berat</th><th className="px-6 py-4">Hrg Beli</th><th className="px-6 py-4">Hrg Jual</th><th className="px-6 py-4">Stok</th><th className="px-6 py-4 text-right">Aksi</th></tr>
             </thead>
@@ -935,9 +943,9 @@ const AdminProducts = ({ db, refreshDb, setToast, user }) => {
                 <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="px-6 py-4 font-semibold text-slate-800">{p.nama_produk}</td>
                   <td className="px-6 py-4 font-bold text-amber-600">{p.kadar || '-'}</td>
-                  <td className="px-6 py-4 text-slate-600">{p.berat}g</td>
-                  <td className="px-6 py-4 text-slate-500">{formatRupiah(p.harga_beli)}</td>
-                  <td className="px-6 py-4 font-medium text-slate-800">{formatRupiah(p.harga_jual)}</td>
+                  <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{p.berat}g</td>
+                  <td className="px-6 py-4 text-slate-500 whitespace-nowrap">{formatRupiah(p.harga_beli)}</td>
+                  <td className="px-6 py-4 font-medium text-slate-800 whitespace-nowrap">{formatRupiah(p.harga_jual)}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-bold border ${p.stok > 5 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>{p.stok} pcs</span>
                   </td>
@@ -1091,33 +1099,35 @@ const AdminInventory = ({ db, refreshDb, setToast, user }) => {
       </div>
       
       <Card className="overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-            <tr><th className="px-6 py-4">Waktu</th><th className="px-6 py-4">Produk</th><th className="px-6 py-4">Tipe</th><th className="px-6 py-4">Jumlah</th><th className="px-6 py-4">Keterangan</th><th className="px-6 py-4 text-right">Aksi</th></tr>
-          </thead>
-          <tbody>
-            {db.inventory_emas.length === 0 && <tr><td colSpan="6" className="text-center py-4 text-slate-500">Tidak ada riwayat inventory.</td></tr>}
-            {db.inventory_emas.map((inv) => {
-              const produk = db.produk_emas.find(p => p.id === inv.produk_id);
-              return (
-                <tr key={inv.id} className="border-b border-slate-100">
-                  <td className="px-6 py-4 text-slate-600">{formatDate(inv.created_at)}</td>
-                  <td className="px-6 py-4 font-semibold text-slate-800">{produk?.nama_produk || 'Unknown ID'}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded text-xs font-bold flex items-center w-fit gap-1 ${inv.tipe === 'masuk' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {inv.tipe === 'masuk' ? <ArrowDownRight size={14}/> : <ArrowUpRight size={14}/>} {inv.tipe.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-slate-800">{inv.jumlah} pcs</td>
-                  <td className="px-6 py-4 text-slate-500">{inv.keterangan || '-'}</td>
-                  <td className="px-6 py-4 text-right">
-                    <Button variant="danger" className="px-2 py-1 h-auto" onClick={() => handleDelete(inv)}><Trash2 size={14} /></Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm text-left min-w-[600px]">
+            <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+              <tr><th className="px-6 py-4">Waktu</th><th className="px-6 py-4">Produk</th><th className="px-6 py-4">Tipe</th><th className="px-6 py-4">Jumlah</th><th className="px-6 py-4">Keterangan</th><th className="px-6 py-4 text-right">Aksi</th></tr>
+            </thead>
+            <tbody>
+              {db.inventory_emas.length === 0 && <tr><td colSpan="6" className="text-center py-4 text-slate-500">Tidak ada riwayat inventory.</td></tr>}
+              {db.inventory_emas.map((inv) => {
+                const produk = db.produk_emas.find(p => p.id === inv.produk_id);
+                return (
+                  <tr key={inv.id} className="border-b border-slate-100">
+                    <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{formatDate(inv.created_at)}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-800">{produk?.nama_produk || 'Unknown ID'}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded text-xs font-bold flex items-center w-fit gap-1 ${inv.tipe === 'masuk' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {inv.tipe === 'masuk' ? <ArrowDownRight size={14}/> : <ArrowUpRight size={14}/>} {inv.tipe.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-bold text-slate-800 whitespace-nowrap">{inv.jumlah} pcs</td>
+                    <td className="px-6 py-4 text-slate-500">{inv.keterangan || '-'}</td>
+                    <td className="px-6 py-4 text-right">
+                      <Button variant="danger" className="px-2 py-1 h-auto" onClick={() => handleDelete(inv)}><Trash2 size={14} /></Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {/* Modal CRUD Inventory */}
@@ -1355,56 +1365,59 @@ const TransaksiHistory = ({ db, refreshDb, setToast, user }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">{user.role === 'admin' ? 'Riwayat Transaksi' : 'Riwayat Transaksi Anda'}</h2>
+          <h2 className="text-2xl font-bold text-slate-800">{user.role === 'admin' ? 'Semua Riwayat Transaksi' : 'Riwayat Transaksi Anda'}</h2>
+          <p className="text-sm text-slate-500">Daftar riwayat penjualan. Anda dapat melihat detail atau membatalkan (hapus) transaksi yang salah.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <div className="flex gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 overflow-x-auto">
-            <button onClick={() => setFilterType('harian')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'harian' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Hari Ini</button>
-            <button onClick={() => setFilterType('bulanan')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'bulanan' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Bulan Ini</button>
-            <button onClick={() => setFilterType('tahunan')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'tahunan' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Tahun Ini</button>
-            <button onClick={() => setFilterType('semua')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'semua' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Semua</button>
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          <div className="flex gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 w-full sm:w-auto overflow-x-auto">
+            <button onClick={() => setFilterType('harian')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'harian' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Hari Ini</button>
+            <button onClick={() => setFilterType('bulanan')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'bulanan' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Bulan Ini</button>
+            <button onClick={() => setFilterType('tahunan')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'tahunan' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Tahun Ini</button>
+            <button onClick={() => setFilterType('semua')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'semua' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Semua</button>
           </div>
-          <Button variant="outline" onClick={handleExport}><Download size={16} className="mr-2"/> Export Excel</Button>
+          <Button variant="outline" onClick={handleExport} className="flex-1 sm:flex-none"><Download size={16} className="mr-2"/> Export Excel</Button>
         </div>
       </div>
       <Card className="overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-4">Waktu</th>
-              <th className="px-6 py-4">Kode Transaksi</th>
-              {user.role === 'admin' && <th className="px-6 py-4">Kasir / Cabang</th>}
-              <th className="px-6 py-4">Item</th>
-              <th className="px-6 py-4">Pendapatan</th>
-              {user.role === 'admin' && <th className="px-6 py-4">Laba</th>}
-              <th className="px-6 py-4 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayTx.length === 0 && <tr><td colSpan={user.role === 'admin' ? 7 : 5} className="text-center py-8 text-slate-500">Tidak ada transaksi ditemukan pada rentang waktu ini.</td></tr>}
-            {displayTx.map((tx) => {
-              const kasir = db.users.find(u => u.id === tx.user_id);
-              const cabang = db.cabang.find(c => c.id === tx.cabang_id);
-              const laba = db.laporan_laba.find(l => l.transaksi_id === tx.id);
-              return (
-                <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="px-6 py-4 text-slate-500">{formatDate(tx.created_at)}</td>
-                  <td className="px-6 py-4 font-bold text-amber-600">{tx.kode_transaksi}</td>
-                  {user.role === 'admin' && <td className="px-6 py-4 text-slate-700 font-medium">{kasir?.nama || '-'}<br/><span className="text-xs text-slate-400 font-normal">{cabang?.nama_cabang || '-'}</span></td>}
-                  <td className="px-6 py-4 text-slate-800">{tx.total_item} pcs</td>
-                  <td className="px-6 py-4 font-bold text-slate-800">{formatRupiah(tx.total_bayar)}</td>
-                  {user.role === 'admin' && <td className="px-6 py-4 font-bold text-green-600">{formatRupiah(laba?.laba || 0)}</td>}
-                  <td className="px-6 py-4 text-right flex justify-end gap-2">
-                    <Button variant="secondary" className="px-3 py-1.5 h-auto text-xs" onClick={() => openDetail(tx)}>Detail</Button>
-                    <Button variant="danger" className="px-3 py-1.5 h-auto text-xs" onClick={() => handleCancelTx(tx)}>
-                      <Trash2 size={14} className="mr-1" /> Batal
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm text-left min-w-[700px]">
+            <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-6 py-4">Waktu</th>
+                <th className="px-6 py-4">Kode Transaksi</th>
+                {user.role === 'admin' && <th className="px-6 py-4">Kasir / Cabang</th>}
+                <th className="px-6 py-4">Item</th>
+                <th className="px-6 py-4">Pendapatan</th>
+                {user.role === 'admin' && <th className="px-6 py-4">Laba</th>}
+                <th className="px-6 py-4 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayTx.length === 0 && <tr><td colSpan={user.role === 'admin' ? 7 : 5} className="text-center py-8 text-slate-500">Tidak ada transaksi ditemukan pada rentang waktu ini.</td></tr>}
+              {displayTx.map((tx) => {
+                const kasir = db.users.find(u => u.id === tx.user_id);
+                const cabang = db.cabang.find(c => c.id === tx.cabang_id);
+                const laba = db.laporan_laba.find(l => l.transaksi_id === tx.id);
+                return (
+                  <tr key={tx.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="px-6 py-4 text-slate-500 whitespace-nowrap">{formatDate(tx.created_at)}</td>
+                    <td className="px-6 py-4 font-bold text-amber-600 whitespace-nowrap">{tx.kode_transaksi}</td>
+                    {user.role === 'admin' && <td className="px-6 py-4 text-slate-700 font-medium whitespace-nowrap">{kasir?.nama || '-'}<br/><span className="text-xs text-slate-400 font-normal">{cabang?.nama_cabang || '-'}</span></td>}
+                    <td className="px-6 py-4 text-slate-800 whitespace-nowrap">{tx.total_item} pcs</td>
+                    <td className="px-6 py-4 font-bold text-slate-800 whitespace-nowrap">{formatRupiah(tx.total_bayar)}</td>
+                    {user.role === 'admin' && <td className="px-6 py-4 font-bold text-green-600 whitespace-nowrap">{formatRupiah(laba?.laba || 0)}</td>}
+                    <td className="px-6 py-4 text-right flex justify-end gap-2">
+                      <Button variant="secondary" className="px-3 py-1.5 h-auto text-xs" onClick={() => openDetail(tx)}>Detail</Button>
+                      <Button variant="danger" className="px-3 py-1.5 h-auto text-xs" onClick={() => handleCancelTx(tx)}>
+                        <Trash2 size={14} className="mr-1" /> Batal
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {/* Modal Detail */}
@@ -1438,8 +1451,8 @@ const TransaksiHistory = ({ db, refreshDb, setToast, user }) => {
                             <p className="font-bold text-slate-800">{product ? product.nama_produk : 'Produk Dihapus'}</p>
                             <p className="text-xs text-slate-500">Qty: {d.qty}</p>
                           </td>
-                          <td className="p-3 text-slate-600">{formatRupiah(d.harga)}</td>
-                          <td className="p-3 font-bold text-slate-800 text-right">{formatRupiah(d.subtotal)}</td>
+                          <td className="p-3 text-slate-600 whitespace-nowrap">{formatRupiah(d.harga)}</td>
+                          <td className="p-3 font-bold text-slate-800 text-right whitespace-nowrap">{formatRupiah(d.subtotal)}</td>
                         </tr>
                       )
                     })}
@@ -1652,7 +1665,7 @@ const KasirBuyback = ({ db, refreshDb, setToast, user }) => {
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-8rem)] animate-in fade-in duration-500">
       {/* KIRI: Form Input Barang */}
-      <Card className="flex-1 p-6 overflow-y-auto">
+      <Card className="flex-1 p-6 overflow-y-auto min-h-[400px]">
         <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><Scale size={20} className="text-amber-500"/> Input Data Perhiasan Pelanggan</h2>
         <form onSubmit={handleAddItem} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1682,22 +1695,22 @@ const KasirBuyback = ({ db, refreshDb, setToast, user }) => {
       </Card>
 
       {/* KANAN: Daftar Transaksi & Checkout */}
-      <Card className="w-full lg:w-[400px] flex flex-col flex-shrink-0 h-full border-slate-200 shadow-xl shadow-slate-200/50">
+      <Card className="w-full lg:w-[400px] flex flex-col flex-shrink-0 h-auto lg:h-full border-slate-200 shadow-xl shadow-slate-200/50">
         <div className="p-4 border-b border-slate-200 bg-white rounded-t-xl flex items-center justify-between">
           <div className="flex items-center gap-2 text-slate-800 font-bold">Daftar Emas ({cart.length})</div>
           {cart.length > 0 && <button onClick={() => setCart([])} className="text-xs font-semibold text-red-500 hover:text-red-700">Kosongkan</button>}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
+        <div className="flex-1 overflow-y-auto max-h-[40vh] lg:max-h-none p-4 space-y-3 bg-slate-50/50">
           {cart.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400">
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10">
               <Scale size={48} className="text-slate-200 mb-4"/>
               <p className="font-medium text-sm">Belum ada barang diinput</p>
             </div>
           ) : (
             cart.map(item => (
               <div key={item.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm relative group">
-                <button onClick={() => removeFromCart(item.id)} className="absolute top-2 right-2 p-1 text-red-400 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={14}/></button>
+                <button onClick={() => removeFromCart(item.id)} className="absolute top-2 right-2 p-1 text-red-400 hover:bg-red-50 rounded opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={14}/></button>
                 <p className="text-sm font-bold text-slate-800 pr-6">{item.nama_emas}</p>
                 <div className="flex justify-between items-end mt-2 text-xs text-slate-500">
                   <div>
@@ -1784,7 +1797,7 @@ const BuybackHistory = ({ db, refreshDb, setToast, user }) => {
 
   const now = new Date();
   const currentWIB = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
-  const [currYear, currMonth] = currentWIB.split('-');
+  const [currYear, currMonth, currDay] = currentWIB.split('-');
 
   let displayBb = user.role === 'admin' ? db.buyback : db.buyback.filter(bb => bb.user_id === user.id);
 
@@ -1939,58 +1952,61 @@ const BuybackHistory = ({ db, refreshDb, setToast, user }) => {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">{user.role === 'admin' ? 'Riwayat Buyback' : 'Riwayat Buyback Anda'}</h2>
+          <h2 className="text-2xl font-bold text-slate-800">{user.role === 'admin' ? 'Semua Riwayat Buyback' : 'Riwayat Buyback Anda'}</h2>
+          <p className="text-sm text-slate-500">Daftar transaksi pembelian emas dari pelanggan (Trade-in / Jual).</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <div className="flex gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 overflow-x-auto">
-            <button onClick={() => setFilterType('harian')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'harian' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Hari Ini</button>
-            <button onClick={() => setFilterType('bulanan')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'bulanan' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Bulan Ini</button>
-            <button onClick={() => setFilterType('tahunan')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'tahunan' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Tahun Ini</button>
-            <button onClick={() => setFilterType('semua')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${filterType === 'semua' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Semua</button>
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          <div className="flex gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 w-full sm:w-auto overflow-x-auto">
+            <button onClick={() => setFilterType('harian')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'harian' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Hari Ini</button>
+            <button onClick={() => setFilterType('bulanan')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'bulanan' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Bulan Ini</button>
+            <button onClick={() => setFilterType('tahunan')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'tahunan' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Tahun Ini</button>
+            <button onClick={() => setFilterType('semua')} className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${filterType === 'semua' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Semua</button>
           </div>
-          <Button variant="outline" onClick={handleExport}><Download size={16} className="mr-2"/> Export Excel</Button>
+          <Button variant="outline" onClick={handleExport} className="flex-1 sm:flex-none"><Download size={16} className="mr-2"/> Export Excel</Button>
         </div>
       </div>
       <Card className="overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-4">Waktu</th>
-              <th className="px-6 py-4">Kode / Pelanggan</th>
-              {user.role === 'admin' && <th className="px-6 py-4">Kasir / Cabang</th>}
-              <th className="px-6 py-4">Total Berat</th>
-              <th className="px-6 py-4">Total Uang Keluar</th>
-              <th className="px-6 py-4 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayBb.length === 0 && <tr><td colSpan={user.role === 'admin' ? 6 : 5} className="text-center py-8 text-slate-500">Tidak ada riwayat buyback pada rentang waktu ini.</td></tr>}
-            {displayBb.map((bb) => {
-              const kasir = db.users.find(u => u.id === bb.user_id);
-              const cabang = db.cabang.find(c => c.id === bb.cabang_id);
-              return (
-                <tr key={bb.id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="px-6 py-4 text-slate-500">{formatDate(bb.created_at)}</td>
-                  <td className="px-6 py-4">
-                    <span className="font-bold text-amber-600 block">{bb.kode_buyback}</span>
-                    <span className="text-slate-600">{bb.nama_customer} ({bb.no_hp})</span>
-                  </td>
-                  {user.role === 'admin' && <td className="px-6 py-4 text-slate-700 font-medium">{kasir?.nama || '-'}<br/><span className="text-xs text-slate-400 font-normal">{cabang?.nama_cabang || '-'}</span></td>}
-                  <td className="px-6 py-4 font-bold text-slate-800">{bb.total_berat} g</td>
-                  <td className="px-6 py-4 font-bold text-red-600">{formatRupiah(bb.total_bayar)}</td>
-                  <td className="px-6 py-4 text-right flex justify-end gap-2">
-                    <Button variant="secondary" className="px-3 py-1.5 h-auto text-xs" onClick={() => openDetail(bb)}>Detail</Button>
-                    {user.role === 'admin' && (
-                      <Button variant="danger" className="px-3 py-1.5 h-auto text-xs" onClick={() => handleCancelBb(bb)}>
-                        <Trash2 size={14} />
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm text-left min-w-[700px]">
+            <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-6 py-4">Waktu</th>
+                <th className="px-6 py-4">Kode / Pelanggan</th>
+                {user.role === 'admin' && <th className="px-6 py-4">Kasir / Cabang</th>}
+                <th className="px-6 py-4">Total Berat</th>
+                <th className="px-6 py-4">Total Uang Keluar</th>
+                <th className="px-6 py-4 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayBb.length === 0 && <tr><td colSpan={user.role === 'admin' ? 6 : 5} className="text-center py-8 text-slate-500">Tidak ada riwayat buyback pada rentang waktu ini.</td></tr>}
+              {displayBb.map((bb) => {
+                const kasir = db.users.find(u => u.id === bb.user_id);
+                const cabang = db.cabang.find(c => c.id === bb.cabang_id);
+                return (
+                  <tr key={bb.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="px-6 py-4 text-slate-500 whitespace-nowrap">{formatDate(bb.created_at)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="font-bold text-amber-600 block">{bb.kode_buyback}</span>
+                      <span className="text-slate-600">{bb.nama_customer} ({bb.no_hp})</span>
+                    </td>
+                    {user.role === 'admin' && <td className="px-6 py-4 text-slate-700 font-medium whitespace-nowrap">{kasir?.nama || '-'}<br/><span className="text-xs text-slate-400 font-normal">{cabang?.nama_cabang || '-'}</span></td>}
+                    <td className="px-6 py-4 font-bold text-slate-800 whitespace-nowrap">{bb.total_berat} g</td>
+                    <td className="px-6 py-4 font-bold text-red-600 whitespace-nowrap">{formatRupiah(bb.total_bayar)}</td>
+                    <td className="px-6 py-4 text-right flex justify-end gap-2">
+                      <Button variant="secondary" className="px-3 py-1.5 h-auto text-xs" onClick={() => openDetail(bb)}>Detail</Button>
+                      {user.role === 'admin' && (
+                        <Button variant="danger" className="px-3 py-1.5 h-auto text-xs" onClick={() => handleCancelBb(bb)}>
+                          <Trash2 size={14} />
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {/* Modal Detail Buyback */}
@@ -2022,8 +2038,8 @@ const BuybackHistory = ({ db, refreshDb, setToast, user }) => {
                           <p className="font-bold text-slate-800">{d.nama_emas}</p>
                           <p className="text-xs text-slate-500">{d.kadar} • {d.kondisi}</p>
                         </td>
-                        <td className="p-3 text-slate-600">{d.berat}g @ {formatRupiah(d.harga_per_gram)}</td>
-                        <td className="p-3 font-bold text-slate-800 text-right">{formatRupiah(d.subtotal)}</td>
+                        <td className="p-3 text-slate-600 whitespace-nowrap">{d.berat}g @ {formatRupiah(d.harga_per_gram)}</td>
+                        <td className="p-3 font-bold text-slate-800 text-right whitespace-nowrap">{formatRupiah(d.subtotal)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -2312,7 +2328,7 @@ const KasirPOS = ({ db, refreshDb, setToast, user }) => {
         </div>
       </div>
 
-      <Card className="w-full lg:w-[400px] flex flex-col flex-shrink-0 h-full border-slate-200 shadow-xl shadow-slate-200/50">
+      <Card className="w-full lg:w-[400px] flex flex-col flex-shrink-0 h-auto lg:h-full border-slate-200 shadow-xl shadow-slate-200/50">
         <div className="p-4 border-b border-slate-200 bg-white rounded-t-xl flex items-center justify-between">
           <div className="flex items-center gap-2 text-slate-800 font-bold">
             <ShoppingCart size={18} className="text-amber-500" /> Keranjang ({totalItem})
@@ -2320,15 +2336,15 @@ const KasirPOS = ({ db, refreshDb, setToast, user }) => {
           {cart.length > 0 && <button onClick={() => setCart([])} className="text-xs font-semibold text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded">Kosongkan</button>}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
+        <div className="flex-1 overflow-y-auto max-h-[40vh] lg:max-h-none p-4 space-y-3 bg-slate-50/50">
           {cart.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400">
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 py-10">
               <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4"><ShoppingCart size={32} className="text-slate-300"/></div>
               <p className="font-medium">Keranjang masih kosong</p>
             </div>
           ) : (
             cart.map(item => (
-              <div key={item.id} className="flex gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+              <div key={item.id} className="flex gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm relative group">
                 <div className="flex-1">
                   <p className="text-sm font-bold text-slate-800 leading-tight">{item.nama_produk}</p>
                   <p className="text-xs font-semibold text-amber-600 mt-1">{formatRupiah(item.harga_jual)}</p>
@@ -2452,11 +2468,39 @@ export default function App() {
   const [route, setRoute] = useState('/dashboard');
   const [toast, setToast] = useState(null);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Real DB State
   const [db, setDb] = useState({
     cabang: [], kategori_emas: [], produk_emas: [], inventory_emas: [], transaksi: [], laporan_laba: [], users: [], buyback: [], keuangan: []
   });
+
+  // Cek Session Storage saat pertama kali load
+  useEffect(() => {
+    const savedUser = localStorage.getItem('pos_user');
+    const savedRoute = localStorage.getItem('pos_route');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+        if (savedRoute) setRoute(savedRoute);
+      } catch (e) {
+        console.error("Gagal load session");
+      }
+    }
+  }, []);
+
+  // Simpan route terakhir agar tidak hilang saat direfresh
+  useEffect(() => {
+    if (user && route) {
+      localStorage.setItem('pos_route', route);
+    }
+  }, [route, user]);
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('pos_user');
+    localStorage.removeItem('pos_route');
+  };
 
   const fetchDatabase = async () => {
     setIsInitializing(true);
@@ -2508,9 +2552,15 @@ export default function App() {
     }
   }, [toast]);
 
+  // Tutup menu mobile saat rute berubah
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [route]);
+
   if (!user) {
     return <LoginView onLogin={(u) => {
       setUser(u);
+      localStorage.setItem('pos_user', JSON.stringify(u));
       setRoute(u.role === 'admin' ? '/admin/dashboard' : '/kasir/dashboard');
     }} />;
   }
@@ -2519,7 +2569,7 @@ export default function App() {
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/admin/produk', icon: Package, label: 'Data Emas' },
     { path: '/admin/inventory', icon: Box, label: 'Inventory Masuk/Keluar' },
-    { path: '/admin/keuangan', icon: Landmark, label: 'Keuangan' },
+    { path: '/admin/keuangan', icon: Landmark, label: 'Buku Kas / Keuangan' },
     { path: '/admin/transaksi', icon: FileText, label: 'Riwayat Transaksi' },
     { path: '/admin/buyback', icon: RefreshCcw, label: 'Riwayat Buyback' },
     { path: '/admin/cabang', icon: Store, label: 'Kelola Cabang' },
@@ -2537,12 +2587,27 @@ export default function App() {
   const currentMenu = user.role === 'admin' ? adminMenu : kasirMenu;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-amber-100 selection:text-amber-900 flex">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-amber-100 selection:text-amber-900 flex overflow-hidden">
       <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
 
-      {/* SIDEBAR - Light Theme */}
-      <aside className="w-64 border-r border-slate-200 bg-white hidden md:flex flex-col sticky top-0 h-screen shadow-sm z-20">
-        <div className="h-16 flex items-center px-6 border-b border-slate-100">
+      {/* OVERLAY MOBILE SIDEBAR */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* SIDEBAR */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col shadow-2xl md:shadow-sm transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <button 
+          className="md:hidden absolute top-5 right-4 text-slate-400 hover:text-slate-600 bg-slate-50 p-1 rounded-full"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <X size={20} />
+        </button>
+
+        <div className="h-16 flex items-center px-6 border-b border-slate-100 shrink-0">
           <h1 className="text-xl font-serif font-bold text-amber-500 flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs">88</div>
             GoldJewellery
@@ -2564,32 +2629,40 @@ export default function App() {
           </div>
         </div>
 
-        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+        <div className="p-4 border-t border-slate-100 bg-slate-50/50 shrink-0">
           <div className="flex items-center gap-3 px-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-amber-600 font-bold uppercase">
+            <div className="w-10 h-10 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-amber-600 font-bold uppercase shrink-0">
               {user.nama.charAt(0)}
             </div>
-            <div>
-              <p className="text-sm font-bold text-slate-800">{user.nama}</p>
-              <p className="text-xs font-semibold text-amber-600 capitalize">{user.role}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-slate-800 truncate">{user.nama}</p>
+              <p className="text-xs font-semibold text-amber-600 capitalize truncate">{user.role}</p>
             </div>
           </div>
-          <Button variant="danger" className="w-full justify-center text-sm font-bold bg-white" onClick={() => setUser(null)}>
+          <Button variant="danger" className="w-full justify-center text-sm font-bold bg-white shadow-sm" onClick={handleLogout}>
             <LogOut size={16} className="mr-2" /> Logout
           </Button>
         </div>
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col min-w-0 bg-slate-50">
-        <header className="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-4 md:px-8 sticky top-0 z-10 shadow-sm">
-          <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-            <span className="capitalize">{user.role}</span>
-            <ChevronRight size={14} className="text-slate-300" />
-            <span className="text-slate-800 font-bold">
-              {currentMenu.find(m => m.path === route)?.label || 'Halaman'}
-            </span>
-            {isInitializing && <Loader2 size={14} className="animate-spin text-amber-500 ml-2"/>}
+      <main className="flex-1 flex flex-col min-w-0 bg-slate-50 h-screen overflow-y-auto">
+        <header className="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-4 md:px-8 sticky top-0 z-10 shadow-sm shrink-0">
+          <div className="flex items-center gap-3">
+            <button 
+              className="md:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+            <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+              <span className="capitalize hidden sm:inline">{user.role}</span>
+              <ChevronRight size={14} className="text-slate-300 hidden sm:inline" />
+              <span className="text-slate-800 font-bold truncate max-w-[150px] sm:max-w-none">
+                {currentMenu.find(m => m.path === route)?.label || 'Halaman'}
+              </span>
+              {isInitializing && <Loader2 size={14} className="animate-spin text-amber-500 ml-2"/>}
+            </div>
           </div>
           
           <div className="flex items-center gap-4">
@@ -2601,7 +2674,7 @@ export default function App() {
           </div>
         </header>
 
-        <div className="p-4 md:p-8 flex-1 overflow-y-auto relative">
+        <div className="p-4 md:p-8 flex-1">
           {/* Router Outlet */}
           {route === '/admin/dashboard' && <AdminDashboard db={db} />}
           {route === '/admin/produk' && <AdminProducts db={db} refreshDb={fetchDatabase} setToast={setToast} user={user} />}
